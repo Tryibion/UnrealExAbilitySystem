@@ -1,2 +1,0 @@
-X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Intermediate\Build\Win64\UE4Editor\Development\ExAbilitySystem\Definitions.ExAbilitySystem.h
-X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Source\ExAbilitySystem\Public\ExAbilitySystem.h
