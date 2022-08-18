@@ -1,0 +1,23 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.ExAbilitySystem.cpp.obj": [
+			"ExAbility.cpp.obj",
+			"ExAbilityComponent.cpp.obj",
+			"ExAbilityInterface.cpp.obj",
+			"ExAbilitySystem.cpp.obj",
+			"ExAttribute.cpp.obj",
+			"ExEffect.cpp.obj",
+			"ExEffectCalculation.cpp.obj"
+		],
+		"Module.ExAbilitySystem.gen.cpp.obj": [
+			"ExAbility.gen.cpp.obj",
+			"ExAbilityComponent.gen.cpp.obj",
+			"ExAbilityInterface.gen.cpp.obj",
+			"ExAbilitySystem.init.gen.cpp.obj",
+			"ExAttribute.gen.cpp.obj",
+			"ExEffect.gen.cpp.obj",
+			"ExEffectCalculation.gen.cpp.obj"
+		]
+	}
+}

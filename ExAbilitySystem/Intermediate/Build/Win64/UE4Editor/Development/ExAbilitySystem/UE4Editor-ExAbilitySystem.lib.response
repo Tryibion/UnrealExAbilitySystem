@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-ExAbilitySystem.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"X:\Unreal\Projects\TestingProject\Intermediate\Build\Win64\TestingProjectEditor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.obj"
+"X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Intermediate\Build\Win64\UE4Editor\Development\ExAbilitySystem\Module.ExAbilitySystem.cpp.obj"
+"X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Intermediate\Build\Win64\UE4Editor\Development\ExAbilitySystem\Module.ExAbilitySystem.gen.cpp.obj"
+"X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Intermediate\Build\Win64\UE4Editor\Development\ExAbilitySystem\Default.rc2.res"
+/OUT:"X:\Unreal\Projects\TestingProject\Plugins\ExAbilitySystem\Intermediate\Build\Win64\UE4Editor\Development\ExAbilitySystem\UE4Editor-ExAbilitySystem.lib"

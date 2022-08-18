@@ -1,0 +1,42 @@
+{
+    "Version": "1.1",
+    "Data": {
+        "Source": "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\development\\exabilitysystem\\module.exabilitysystem.gen.cpp",
+        "ProvidedModule": "",
+        "PCH": "x:\\unreal\\projects\\testingproject\\intermediate\\build\\win64\\testingprojecteditor\\development\\engine\\sharedpch.engine.shadowerrors.h.pch",
+        "Includes": [
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\development\\exabilitysystem\\definitions.exabilitysystem.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exability.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exability.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exabilitycomponent.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exattribute.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\gameplaytags\\classes\\gameplaytagcontainer.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\core\\public\\misc\\comparisonutility.h",
+            "x:\\unreal\\ue_5.0\\engine\\intermediate\\build\\win64\\unrealeditor\\inc\\gameplaytags\\gameplaytagcontainer.generated.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exattribute.generated.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exabilitycomponent.generated.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exeffect.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exeffectcalculation.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exeffectcalculation.generated.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\coreuobject\\public\\uobject\\noexporttypes.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\coreuobject\\public\\uobject\\propertyaccessutil.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\core\\public\\math\\unitconversion.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\core\\public\\math\\unitconversion.inl",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\core\\public\\internationalization\\polyglottextdata.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\coreuobject\\public\\assetregistry\\arfilter.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exeffect.generated.h",
+            "x:\\unreal\\ue_5.0\\engine\\source\\runtime\\engine\\public\\latentactions.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exability.generated.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exabilitycomponent.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exabilityinterface.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\source\\exabilitysystem\\public\\exabilityinterface.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exabilityinterface.generated.h",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exabilitysystem.init.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exattribute.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exeffect.gen.cpp",
+            "x:\\unreal\\projects\\testingproject\\plugins\\exabilitysystem\\intermediate\\build\\win64\\unrealeditor\\inc\\exabilitysystem\\exeffectcalculation.gen.cpp"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
