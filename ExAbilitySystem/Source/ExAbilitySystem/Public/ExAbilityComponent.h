@@ -5,22 +5,26 @@
 #include "CoreMinimal.h"
 #include "ExAttribute.h"
 #include "GameplayTagContainer.h"
+#include "GameplayTasksComponent.h"
 
 #include "Components/ActorComponent.h"
 #include "ExAbilityComponent.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayTagsAdded, FGameplayTagContainer, AddedTags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayTagsRemoved, FGameplayTagContainer, RemovedTags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEvent, FGameplayTag, EventTag);
 
 class UExAbility;
 class UExEffect;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class EXABILITYSYSTEM_API UExAbilityComponent : public UActorComponent
+class EXABILITYSYSTEM_API UExAbilityComponent : public UGameplayTasksComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UExAbilityComponent();
-	
+	UExAbilityComponent(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts
@@ -74,6 +78,18 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "Ability System")
 	FGameplayTagContainer OwnerTags;
+
+	UFUNCTION(BlueprintCallable, Category="Ability System|Tags")
+	FORCEINLINE FGameplayTagContainer GetOwnedTags() {return OwnerTags;};
+
+	UPROPERTY()
+	FOnGameplayTagsAdded OnGameplayTagsAdded;
+
+	UPROPERTY()
+	FOnGameplayTagsRemoved OnGameplayTagsRemoved;
+
+	UPROPERTY()
+	FOnGameplayEvent OnGameplayEvent;
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -164,8 +180,15 @@ public:
 	 * @param Effect A subclass of an effect.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Effects")
-	void RemoveEffect(TSubclassOf<UExEffect> Effect);
+	void RemoveEffectByClass(TSubclassOf<UExEffect> Effect);
 
+	/**
+	 * @brief This function removes an effect if the effect is active.
+	 * @param Effect This is an instance of an effect
+	 */
+	UFUNCTION(BlueprintCallable, Category="Ability|Effects")
+	void RemoveEffect(UExEffect* Effect);
+	
 	/**
 	 * @brief This function checks to see if the owner has an attribute.
 	 * @param Attribute This is a subclass of an attribute.
@@ -183,26 +206,25 @@ public:
 	UExAttribute* GetAttributeOfClass(TSubclassOf<UExAttribute> Attribute);
 
 	/**
-	 * @brief This function find any abilities that are waiting for a tag event to continue and sends a tag to them.
-	 * @param Tag This is a gameplay tag.
-	 */
-	UFUNCTION(BlueprintCallable)
-	void SendGameplayTagEvent(FGameplayTag Tag);
-
-	/**
 	 * @brief This function adds a gameplay tag to the OwnerTags container.
-	 * @param Tag This is a gameplay tag.
+	 * @param Tags This is a gameplay tag.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Tags")
-	void AddTagToOwnedTags(FGameplayTag Tag);
+	void AddTagsToOwnedTags(FGameplayTagContainer Tags);
 
 	/**
 	 * @brief This function removes a tag from the OwnerTags container.
-	 * @param Tag This is a gameplay tag.
+	 * @param Tags This is a gameplay tag.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Ability|Tags")
-	void RemoveTagFromOwnedTags(FGameplayTag Tag);
-	
+	void RemoveTagsFromOwnedTags(FGameplayTagContainer Tags);
+
+	/**
+	 * @brief This function sends a gameplay event out and will activate any tasks waiting for the event.
+	 * @param Tag The event tag to activate.
+	 */
+	UFUNCTION(BlueprintCallable, Category="Ability|Event")
+	void SendGameplayTagEvent(FGameplayTag Tag);
 };
 
 

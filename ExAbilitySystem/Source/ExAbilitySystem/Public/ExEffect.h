@@ -6,7 +6,6 @@
 #include "ExAttribute.h"
 #include "ExEffectCalculation.h"
 #include "GameplayTagContainer.h"
-#include "UObject/NoExportTypes.h"
 #include "ExEffect.generated.h"
 
 /**
@@ -78,13 +77,13 @@ struct FEffectOwnerInfo
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	AActor* OwningActor;
+	TObjectPtr<AActor> OwningActor;
 
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	UExAbilityComponent* OwningAbilityComponent;
+	TObjectPtr<UExAbilityComponent> OwningAbilityComponent;
 
 	UPROPERTY(Transient)
-	UWorld* World;
+	TObjectPtr<UWorld> World;
 	
 };
 
@@ -116,7 +115,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Effect")
 	FEffectOwnerInfo OwnerInfo;
 
-	virtual UWorld* GetWorld() const override { return OwnerInfo.World; };
+	virtual UWorld* GetWorld() const override { return OwnerInfo.World.Get(); };
 
 	/**
 	 * @brief Activation type for the effect.
@@ -189,4 +188,7 @@ public:
 	 */
 	UPROPERTY()
 	FTimerHandle EffectTimerHandle;
+
+	UPROPERTY()
+	TArray<class UExEffectCalculation*> CustomEffectCalculation;
 };

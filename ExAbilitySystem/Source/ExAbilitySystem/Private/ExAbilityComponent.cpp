@@ -5,15 +5,13 @@
 
 #include "ExAbility.h"
 #include "ExEffect.h"
+#include "ExAbilitySystem/ExAbilitySystemLogging.h"
 
 // Sets default values for this component's properties
-UExAbilityComponent::UExAbilityComponent()
+UExAbilityComponent::UExAbilityComponent(const FObjectInitializer& ObjectInitializer)
+	: Super (ObjectInitializer)
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
-	
-	// ...
 }
 
 // Called when the game starts
@@ -37,8 +35,6 @@ void UExAbilityComponent::BeginPlay()
 	{
 		GrantEffect(DefaultEffect);
 	}
-	// ...
-	
 }
 
 void UExAbilityComponent::CreateAttribute(TSubclassOf<UExAttribute> DefaultAttribute)
@@ -60,6 +56,7 @@ void UExAbilityComponent::CreateAttribute(TSubclassOf<UExAttribute> DefaultAttri
 		InstancedAttribute->OwnerInfo.OwningActor = GetOwner();
 		InstancedAttribute->OwnerInfo.OwningAbilityComponent = this;
 		Attributes.Add(InstancedAttribute);
+		UE_EXABILITY_LOG("%s ability has been created on %s ability component", *InstancedAttribute->GetName(), *GetName())
 	}
 }
 
@@ -70,6 +67,7 @@ void UExAbilityComponent::AddActiveEffect(UExEffect* Effect)
 		return;
 	}
 	ActiveEffects.Add(Effect);
+	UE_EXABILITY_LOG("%s effect has been added as an active effect from %s ability component", *Effect->GetName(), *GetName())
 }
 
 void UExAbilityComponent::RemoveActiveEffect(UExEffect* Effect)
@@ -79,6 +77,7 @@ void UExAbilityComponent::RemoveActiveEffect(UExEffect* Effect)
 		return;
 	}
 	ActiveEffects.Remove(Effect);
+	UE_EXABILITY_LOG("%s effect has been removed as an active effect from %s ability component", *Effect->GetName(), *GetName())
 }
 
 
@@ -107,6 +106,7 @@ bool UExAbilityComponent::GrantAbility(TSubclassOf<UExAbility> Ability)
 	}
 	
 	GrantedAbilities.Add(Ability);
+	UE_EXABILITY_LOG("%s ability has been granted to %s ability component", *Ability->GetName(), *GetName())
 	return true;
 }
 
@@ -129,6 +129,7 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 		{
 			if (!OwnerTags.HasAll(GrantedAbility.GetDefaultObject()->ActivationRequiredTags))
 			{
+				UE_EXABILITY_LOG("%s ability could not be activated due to the owner not having all of the required tags.", *GrantedAbility->GetName());
 				return false;
 			}
 		}
@@ -138,6 +139,7 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 		{
 			if (OwnerTags.HasAny(GrantedAbility.GetDefaultObject()->ActivationBlockedTags))
 			{
+				UE_EXABILITY_LOG("%s ability could not be activated due to exisitng tags blocking the activation.", *GrantedAbility->GetName());
 				return false;
 			}
 		}
@@ -147,7 +149,16 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 		{
 			if (ActiveAbility->BlockAbilityTags.HasAny(GrantedAbility.GetDefaultObject()->AbilityTags))
 			{
+				UE_EXABILITY_LOG("%s ability could not be activated due to an active ability blocking its activation.", *GrantedAbility->GetName());
 				return false;
+			}
+			if (ActiveAbility->GetClass() == Ability)
+			{
+				if (ActiveAbility->bAllowOnlyOne)
+				{
+					UE_EXABILITY_LOG("%s ability could not be activated due to the same ability already being active. To allow multiple of the same ability change the bAllowOnlyOne to false", *GrantedAbility->GetName());
+					return false;
+				}
 			}
 		}
 
@@ -156,6 +167,7 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 		{
 			if (OwnerTags.HasAny(Ability.GetDefaultObject()->AbilityCooldown.GetDefaultObject()->GrantedTags))
 			{
+				UE_EXABILITY_LOG("%s ability could not be activated due to the cooldown being active.", *GrantedAbility->GetName());
 				return false;
 			}
 		}
@@ -168,6 +180,7 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 				if (ActiveAbility->AbilityTags.HasAny(Ability.GetDefaultObject()->CancelAbilityTags))
 				{
 					ActiveAbility->CancelAbility();
+					UE_EXABILITY_LOG("%s ability canceled the active ability %s.", *GrantedAbility->GetName(), *ActiveAbility->GetName());
 				}
 			}
 		}
@@ -188,6 +201,8 @@ bool UExAbilityComponent::TryActivateAbility(TSubclassOf<UExAbility> Ability, UE
 		{
 			AddActiveAbility(InstancedAbility);
 			OwnerTags.AppendTags(InstancedAbility->GrantedTags);
+			OnGameplayTagsAdded.Broadcast(InstancedAbility->GrantedTags);
+			UE_EXABILITY_LOG("%s ability has been sucessfully activated.", *InstancedAbility->GetName());
 			InstancedAbility->ActivateAbility();
 			AbilityInstance = InstancedAbility; // return ability pointer form function
 			return true;
@@ -204,6 +219,8 @@ void UExAbilityComponent::DeactivateAbility(UExAbility* Ability)
 	}
 	
 	OwnerTags.RemoveTags(Ability->GrantedTags);
+	OnGameplayTagsRemoved.Broadcast(Ability->GrantedTags);
+	UE_EXABILITY_LOG("%s ability has been taged to be removed.", *Ability->GetName());
 	RemoveActiveAbility(Ability);
 }
 
@@ -237,6 +254,7 @@ void UExAbilityComponent::AddActiveAbility(UExAbility* Ability)
 		return;
 	}
 	ActiveAbilities.Add(Ability);
+	UE_EXABILITY_LOG("%s ability has been added as an active ability.", *Ability->GetName());
 }
 
 void UExAbilityComponent::RemoveActiveAbility(UExAbility* Ability)
@@ -246,6 +264,7 @@ void UExAbilityComponent::RemoveActiveAbility(UExAbility* Ability)
 		return;
 	}
 	ActiveAbilities.Remove(Ability);
+	UE_EXABILITY_LOG("%s ability has been removed as an active ability.", *Ability->GetName());
 }
 
 bool UExAbilityComponent::GrantEffect(TSubclassOf<UExEffect> Effect)
@@ -271,23 +290,35 @@ bool UExAbilityComponent::GrantEffect(TSubclassOf<UExEffect> Effect)
 	InstancedEffect->OwnerInfo.OwningAbilityComponent = this;
 	InstancedEffect->OwnerInfo.OwningActor = GetOwner();
 	OwnerTags.AppendTags(InstancedEffect->GrantedTags);
+	OnGameplayTagsAdded.Broadcast(InstancedEffect->GrantedTags);
 	AddActiveEffect(InstancedEffect);
+	UE_EXABILITY_LOG("%s effect has been granted and activated.", *InstancedEffect->GetName());
 	InstancedEffect->StartEffect();
 	return true;
 }
 
-void UExAbilityComponent::RemoveEffect(TSubclassOf<UExEffect> Effect)
+void UExAbilityComponent::RemoveEffectByClass(TSubclassOf<UExEffect> Effect)
 {
 	// removes effect only if it is an active effect
 	for (auto EffectInstance : ActiveEffects)
 	{
 		if (EffectInstance->GetClass() == Effect)
 		{
-			EffectInstance->EndEffect();
-			OwnerTags.RemoveTags(EffectInstance->GrantedTags);
-			RemoveActiveEffect(EffectInstance);
+			RemoveEffect(EffectInstance);
 			return;
 		}
+	}
+}
+
+void UExAbilityComponent::RemoveEffect(UExEffect* Effect)
+{
+	if (ActiveEffects.Contains(Effect))
+	{
+		Effect->EndEffect();
+		OwnerTags.RemoveTags(Effect->GrantedTags);
+		OnGameplayTagsRemoved.Broadcast(Effect->GrantedTags);
+		RemoveActiveEffect(Effect);
+		UE_EXABILITY_LOG("%s effect has been removed.", *Effect->GetName());
 	}
 }
 
@@ -317,28 +348,22 @@ UExAttribute* UExAbilityComponent::GetAttributeOfClass(TSubclassOf<UExAttribute>
 	return nullptr;
 }
 
+void UExAbilityComponent::AddTagsToOwnedTags(FGameplayTagContainer Tags)
+{
+	OwnerTags.AppendTags(Tags);
+	OnGameplayTagsAdded.Broadcast(Tags);
+}
+
+void UExAbilityComponent::RemoveTagsFromOwnedTags(FGameplayTagContainer Tags)
+{
+	OwnerTags.RemoveTags(Tags);
+	OnGameplayTagsRemoved.Broadcast(Tags);
+}
+
 void UExAbilityComponent::SendGameplayTagEvent(FGameplayTag Tag)
 {
-	// loop through abilities and find action to sent a gameplay tag.
-	for(auto ability : ActiveAbilities)
-	{
-		WaitForTag* Action = GetWorld()->GetLatentActionManager().FindExistingAction<class WaitForTag>(ability, ability->LatentID);
-		if (Action)
-		{
-			GEngine->AddOnScreenDebugMessage(1, 1, FColor::Blue, TEXT("Tag Sent"));
-			Action->TryTag(Tag);
-		}
-	}
-}
-
-void UExAbilityComponent::AddTagToOwnedTags(FGameplayTag Tag)
-{
-	OwnerTags.AddTag(Tag);
-}
-
-void UExAbilityComponent::RemoveTagFromOwnedTags(FGameplayTag Tag)
-{
-	OwnerTags.RemoveTag(Tag);
+	OnGameplayEvent.Broadcast(Tag);
+	UE_EXABILITY_LOG("%s tag was broadcast as a gameplay tag event.", *Tag.ToString());
 }
 
 

@@ -30,13 +30,13 @@ struct FAttributeOwnerInfo
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	AActor* OwningActor;
+	TObjectPtr<AActor> OwningActor;
 
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	UExAbilityComponent* OwningAbilityComponent;
+	TObjectPtr<UExAbilityComponent> OwningAbilityComponent;
 
 	UPROPERTY(Transient)
-	UWorld* World;
+	TObjectPtr<UWorld> World;
 	
 };
 
@@ -86,7 +86,7 @@ protected:
 public:
 
 	
-	virtual UWorld* GetWorld() const override { return OwnerInfo.World; };
+	virtual UWorld* GetWorld() const override { return OwnerInfo.World.Get(); };
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Attribute")
 	AActor* GetOwningActor();
@@ -170,12 +170,12 @@ public:
 	 * @brief This function is called before an attribute is changed.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Attribute")
-	virtual void PreAttributeChange();
+	virtual void PreAttributeChange(float& Value);
 
 	/**
 	 * @brief This function is the blueprint overridden function for before the attribute has been changed.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category="Attribute", meta = (DisplayName="Pre Attribute Change"))
-	void PreAttributeChange_BP();
+	void PreAttributeChange_BP(float NewValue, float& Value);
 	
 };

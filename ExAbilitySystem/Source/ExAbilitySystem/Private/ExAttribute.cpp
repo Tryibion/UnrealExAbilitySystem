@@ -3,6 +3,7 @@
 
 #include "ExAttribute.h"
 #include "ExAbilityComponent.h"
+#include "ExAbilitySystem/ExAbilitySystemLogging.h"
 
 UExAttribute::UExAttribute()
 {
@@ -14,23 +15,23 @@ UExAttribute::UExAttribute()
 
 AActor* UExAttribute::GetOwningActor()
 {
-	return OwnerInfo.OwningActor;
+	return OwnerInfo.OwningActor.Get();
 }
 
 UExAbilityComponent* UExAttribute::GetOwningAbilityComponent()
 {
-	return OwnerInfo.OwningAbilityComponent;
+	return OwnerInfo.OwningAbilityComponent.Get();
 }
 
 void UExAttribute::ChangeCurrentValue(float NewValue)
 {
 	// set value type and change current value in-between min and max values
 	ChangedValue = EAttributeValueType::AVT_CurrentValue;
-	PreAttributeChange();
+	PreAttributeChange(NewValue);
 	OldCurrentValue = CurrentValue;
 	CurrentValue = FMath::Clamp(NewValue, MinimumValue, MaximumValue);
 	OnCurrentValueChanged.Broadcast(CurrentValue, OldCurrentValue);
-	UE_LOG(LogTemp, Display, TEXT("%s current value changed"), *GetName());
+	UE_EXABILITY_LOG("%s current value changed", *GetName());
 	PostAttributeChange();
 }
 
@@ -38,7 +39,7 @@ void UExAttribute::ChangeMinimumValue(float NewValue)
 {
 	// set value type and change minimum value
 	ChangedValue = EAttributeValueType::AVT_MinimumValue;
-	PreAttributeChange();
+	PreAttributeChange(NewValue);
 	OldMinimumValue = MinimumValue;
 	MinimumValue = NewValue;
 	
@@ -49,7 +50,7 @@ void UExAttribute::ChangeMinimumValue(float NewValue)
 	}
 	
 	OnMinimumValueChanged.Broadcast(MinimumValue, OldMinimumValue);
-	UE_LOG(LogTemp, Display, TEXT("%s minimum value changed"), *GetName());
+	UE_EXABILITY_LOG("%s minimum value changed", *GetName());
 	PostAttributeChange();
 }
 
@@ -57,7 +58,7 @@ void UExAttribute::ChangeMaximumValue(float NewValue)
 {
 	// set value type and change maximum value
 	ChangedValue = EAttributeValueType::AVT_MaximumValue;
-	PreAttributeChange();
+	PreAttributeChange(NewValue);
 	OldMaximumValue = MaximumValue;
 	MaximumValue = NewValue;
 
@@ -68,7 +69,7 @@ void UExAttribute::ChangeMaximumValue(float NewValue)
 	}
 	
 	OnMaximumValueChanged.Broadcast(MaximumValue, OldMaximumValue);
-	UE_LOG(LogTemp, Display, TEXT("%s maximum value changed"), *GetName());
+	UE_EXABILITY_LOG("%s maximum value changed", *GetName());
 	PostAttributeChange();
 }
 
@@ -96,12 +97,12 @@ void UExAttribute::PostAttributeChange_BP_Implementation()
 {
 }
 
-void UExAttribute::PreAttributeChange()
+void UExAttribute::PreAttributeChange(float& Value)
 {
-	PreAttributeChange_BP();
+	PreAttributeChange_BP(Value, Value);
 }
 
-void UExAttribute::PreAttributeChange_BP_Implementation()
+void UExAttribute::PreAttributeChange_BP_Implementation(float NewValue, float& Value)
 {
 }
 

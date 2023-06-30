@@ -4,6 +4,7 @@
 #include "ExEffect.h"
 
 #include "ExAbilityComponent.h"
+#include "ExAbilitySystem/ExAbilitySystemLogging.h"
 
 UExEffect::UExEffect()
 {
@@ -15,7 +16,7 @@ UExEffect::UExEffect()
 
 void UExEffect::StartEffect()
 {
-	UE_LOG(LogTemp, Display, TEXT("%s effect started"), *GetName());
+	UE_EXABILITY_LOG("%s effect started", *GetName());
 	EffectTimerHandle.Invalidate();
 	DurationCounter = 0.f;
 
@@ -38,14 +39,14 @@ void UExEffect::StartEffect()
 
 void UExEffect::RunEffect()
 {
-	UE_LOG(LogTemp, Display, TEXT("%s effect running"), *GetName());
-
+	UE_EXABILITY_LOG("%s effect running", *GetName());
+	
 	// run for each attribute to modify
 	for (auto AttributeToModify : ModifyAttribute)
 	{
-		if (OwnerInfo.OwningAbilityComponent->CheckIfHasAttributeByClass(AttributeToModify.Attribute))
+		if (OwnerInfo.OwningAbilityComponent.Get()->CheckIfHasAttributeByClass(AttributeToModify.Attribute))
 		{
-			UExAttribute* Attribute = OwnerInfo.OwningAbilityComponent->GetAttributeOfClass(AttributeToModify.Attribute);
+			UExAttribute* Attribute = OwnerInfo.OwningAbilityComponent.Get()->GetAttributeOfClass(AttributeToModify.Attribute);
 			if (!Attribute)
 			{
 				continue;
@@ -69,13 +70,27 @@ void UExEffect::RunEffect()
 							break;
 						case EEffectModifyType::EMT_CustomCalculation:
 							{
-								// not efficient to create instance everytime. TODO: make more efficient
-								UExEffectCalculation* CustomCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
-								if (CustomCalculation)
+								bool bAlreadyContains = false;
+								for	(auto Calculation : CustomEffectCalculation)
 								{
-									CustomCalculation->ParentEffect = this;
-									CustomCalculation->AttributeToModify = Attribute;
-									Attribute->ChangeCurrentValue(CustomCalculation->Calculation());
+									if (Calculation->GetClass() == AttributeToModify.EffectCalculation)
+									{
+										bAlreadyContains = true;
+										Attribute->ChangeCurrentValue(Calculation->Calculation());
+										break;
+									}
+								}
+								
+								if (!bAlreadyContains)
+								{
+									UExEffectCalculation* EffectCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
+									if (EffectCalculation)
+									{
+										EffectCalculation->ParentEffect = this;
+										EffectCalculation->AttributeToModify = Attribute;
+										CustomEffectCalculation.Add(EffectCalculation);
+										Attribute->ChangeCurrentValue(EffectCalculation->Calculation());
+									}
 								}
 							}
 							break;
@@ -99,13 +114,27 @@ void UExEffect::RunEffect()
 							break;
 						case EEffectModifyType::EMT_CustomCalculation:
 							{
-								// not efficient to create instance everytime. TODO: make more efficient
-								UExEffectCalculation* CustomCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
-								if (CustomCalculation)
+								bool bAlreadyContains = false;
+								for	(auto Calculation : CustomEffectCalculation)
 								{
-									CustomCalculation->ParentEffect = this;
-									CustomCalculation->AttributeToModify = Attribute;
-									Attribute->ChangeMinimumValue(CustomCalculation->Calculation());
+									if (Calculation->GetClass() == AttributeToModify.EffectCalculation)
+									{
+										bAlreadyContains = true;
+										Attribute->ChangeMinimumValue(Calculation->Calculation());
+										break;
+									}
+								}
+								
+								if (!bAlreadyContains)
+								{
+									UExEffectCalculation* EffectCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
+									if (EffectCalculation)
+									{
+										EffectCalculation->ParentEffect = this;
+										EffectCalculation->AttributeToModify = Attribute;
+										CustomEffectCalculation.Add(EffectCalculation);
+										Attribute->ChangeMinimumValue(EffectCalculation->Calculation());
+									}
 								}
 							}
 							break;
@@ -129,13 +158,27 @@ void UExEffect::RunEffect()
 							break;
 						case EEffectModifyType::EMT_CustomCalculation:
 							{
-								// not efficient to create instance everytime. TODO: make more efficient
-								UExEffectCalculation* CustomCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
-								if (CustomCalculation)
+								bool bAlreadyContains = false;
+								for	(auto Calculation : CustomEffectCalculation)
 								{
-									CustomCalculation->ParentEffect = this;
-									CustomCalculation->AttributeToModify = Attribute;
-									Attribute->ChangeMaximumValue(CustomCalculation->Calculation());
+									if (Calculation->GetClass() == AttributeToModify.EffectCalculation)
+									{
+										bAlreadyContains = true;
+										Attribute->ChangeMaximumValue(Calculation->Calculation());
+										break;
+									}
+								}
+								
+								if (!bAlreadyContains)
+								{
+									UExEffectCalculation* EffectCalculation = NewObject<UExEffectCalculation>(this, AttributeToModify.EffectCalculation);
+									if (EffectCalculation)
+									{
+										EffectCalculation->ParentEffect = this;
+										EffectCalculation->AttributeToModify = Attribute;
+										CustomEffectCalculation.Add(EffectCalculation);
+										Attribute->ChangeMaximumValue(EffectCalculation->Calculation());
+									}
 								}
 							}
 							break;
@@ -155,13 +198,13 @@ void UExEffect::RunEffect()
 	switch (ActivationType)
 	{
 		case EEffectActivationType::EAT_Instant:
-			OwnerInfo.OwningAbilityComponent->RemoveEffect(this->GetClass());
+			OwnerInfo.OwningAbilityComponent.Get()->RemoveEffect(this);
 			break;
 		case EEffectActivationType::EAT_HasDuration:
 			DurationCounter += ActivationFiringRate;
 			if (DurationCounter >= Duration)
 			{
-				OwnerInfo.OwningAbilityComponent->RemoveEffect(this->GetClass());
+				OwnerInfo.OwningAbilityComponent.Get()->RemoveEffect(this);
 			}
 			break;
 		case EEffectActivationType::EAT_Infinite:
@@ -177,7 +220,8 @@ void UExEffect::RunEffect()
 
 void UExEffect::EndEffect()
 {
-	UE_LOG(LogTemp, Display, TEXT("%s effect ended"), *GetName());
+	UE_EXABILITY_LOG("%s effect ended", *GetName());
+	CustomEffectCalculation.Empty();
 	GetWorld()->GetTimerManager().ClearTimer(EffectTimerHandle);
 }
 

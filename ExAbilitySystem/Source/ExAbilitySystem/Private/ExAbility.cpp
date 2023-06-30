@@ -3,10 +3,14 @@
 
 #include "ExAbility.h"
 
+#include "ExAbilitySystem/ExAbilitySystemLogging.h"
+#include "Tasks/ExAbilityTask.h"
+
 
 UExAbility::UExAbility()
 {
-	AutoCommit = true;
+	bAutoCommit = true;
+	bAllowOnlyOne = true;
 }
 
 bool UExAbility::CanActivateAbility()
@@ -21,13 +25,15 @@ bool UExAbility::CanActivateAbility_BP_Implementation()
 
 void UExAbility::ActivateAbility()
 {
-	if (AutoCommit)
+	UE_EXABILITY_LOG("%s ability activated.", *GetName());
+	
+	if (bAutoCommit)
 	{
 		CommitAbility();
 	}
+	bIsActive = true;
 	
 	ActivateAbility_BP();
-	UE_LOG(LogTemp, Display, TEXT("%s ability activated"), *GetName());
 }
 
 void UExAbility::ActivateAbility_BP_Implementation()
@@ -37,8 +43,9 @@ void UExAbility::ActivateAbility_BP_Implementation()
 
 void UExAbility::EndAbility()
 {
+	bIsActive = false;
 	EndAbility_BP();
-	UE_LOG(LogTemp, Display, TEXT("%s ability ended"), *GetName());
+	UE_EXABILITY_LOG("%s ability ended.", *GetName());
 	GetOwningAbilityComponent()->DeactivateAbility(this); //TODO: decouple from ability component
 }
 
@@ -54,7 +61,8 @@ void UExAbility::CancelAbility_BP_Implementation()
 
 void UExAbility::CancelAbility()
 {
-	UE_LOG(LogTemp, Display, TEXT("%s ability canceled"), *GetName());
+	bIsActive = false;
+	UE_EXABILITY_LOG("%s ability canceled.", *GetName())
 	CancelAbility_BP();
 	EndAbility();
 }
@@ -77,24 +85,45 @@ bool UExAbility::CommitAbility()
 			return false;
 		}
 	}
-	UE_LOG(LogTemp, Display, TEXT("%s ability committed"), *GetName());
+	UE_EXABILITY_LOG("%s ability committed.", *GetName());
 	return true;
 }
 
 AActor* UExAbility::GetOwningActor()
 {
-	return OwnerInfo.OwningActor;
+	return OwnerInfo.OwningActor.Get();
 }
 
 UExAbilityComponent* UExAbility::GetOwningAbilityComponent()
 {
-	return OwnerInfo.OwningAbilityComponent;
+	return OwnerInfo.OwningAbilityComponent.Get();
 }
 
-void UExAbility::WaitForTag(FGameplayTag Tag, FLatentActionInfo LatentInfo)
+void UExAbility::OnGameplayTaskInitialized(UGameplayTask& Task)
 {
-	LatentID = FMath::RandRange(0, 10000000);
-	GetWorld()->GetLatentActionManager().AddNewAction(this, LatentID, new class WaitForTag(Tag, LatentInfo));
+	if (UExAbilityTask* AbilityTask = Cast<UExAbilityTask>(&Task))
+	{
+		AbilityTask->SetAbilityComponent(OwnerInfo.OwningAbilityComponent.Get());
+		AbilityTask->SetAbility(this);
+		UE_EXABILITY_LOG("%s task initialized.", *Task.GetInstanceName().ToString());
+	}
+}
+
+void UExAbility::OnGameplayTaskActivated(UGameplayTask& Task)
+{
+	ActiveTasks.Add(&Task);
+	UE_EXABILITY_LOG("%s task activated.", *Task.GetInstanceName().ToString());
+}
+
+void UExAbility::OnGameplayTaskDeactivated(UGameplayTask& Task)
+{
+	ActiveTasks.Remove(&Task);
+	UE_EXABILITY_LOG("%s task deactivated.", *Task.GetInstanceName().ToString());
+}
+
+UGameplayTasksComponent* UExAbility::GetGameplayTasksComponent(const UGameplayTask& Task) const
+{
+	return OwnerInfo.OwningAbilityComponent.Get();
 }
 
 

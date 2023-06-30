@@ -7,42 +7,8 @@
 #include "ExEffect.h"
 #include "LatentActions.h"
 #include "GameplayTagContainer.h"
-#include "UObject/NoExportTypes.h"
+#include "GameplayTaskOwnerInterface.h"
 #include "ExAbility.generated.h"
-
-/**
- * @brief This class used the latent action to pauses the execution of the the blueprint scripts until a tag is sent that matches it's set tag.
- */
-class WaitForTag : public FPendingLatentAction
-{
-	FGameplayTag TagToWaitFor;
-	FGameplayTag TagToCheck;
-
-	FName ExecutionFunction;
-	int32 OutputLink;
-	TObjectPtr<UObject> CallbackTarget;
-	
-public:
-	
-	WaitForTag(FGameplayTag Tag, FLatentActionInfo& LatentInfo)
-	{
-		TagToWaitFor = Tag;
-		ExecutionFunction = LatentInfo.ExecutionFunction;
-		OutputLink = LatentInfo.Linkage;
-		CallbackTarget = LatentInfo.CallbackTarget;
-	};
-	
-	virtual void UpdateOperation(FLatentResponse& Response) override
-	{
-		GEngine->AddOnScreenDebugMessage(0, 1, FColor::Blue, TEXT("Action"));
-		Response.FinishAndTriggerIf(TagToWaitFor.MatchesTagExact(TagToCheck), ExecutionFunction, OutputLink, CallbackTarget);
-	};
-
-	void TryTag(FGameplayTag Tag)
-	{
-		TagToCheck = Tag;
-	};
-};
 
 /**
  * @brief This is a struct that holds owning information.
@@ -53,21 +19,20 @@ struct FAbilityOwnerInfo
 	GENERATED_BODY()
 	
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	AActor* OwningActor;
+	TObjectPtr<AActor> OwningActor;
 
 	UPROPERTY(BlueprintReadOnly, Category="OwnerInfo")
-	UExAbilityComponent* OwningAbilityComponent;
+	TObjectPtr<UExAbilityComponent> OwningAbilityComponent;
 
 	UPROPERTY(Transient)
-	UWorld* World;
-	
+	TObjectPtr<UWorld> World;
 };
 
 /**
  * 
  */
 UCLASS(Blueprintable, BlueprintType, Abstract)
-class EXABILITYSYSTEM_API UExAbility : public UObject
+class EXABILITYSYSTEM_API UExAbility : public UObject, public IGameplayTaskOwnerInterface
 {
 	GENERATED_BODY()
 
@@ -81,11 +46,24 @@ public:
 	FAbilityOwnerInfo OwnerInfo;
 
 	/**
+	 * @brief Information of Owning objects.
+	 */
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsActive;
+
+	/**
 	 * @brief If true, the ability will commit the cost and the cooldown automatically. If false, the commit will need to be called manually.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Ability|General",
 		meta = (ToolTip = "If true, the ability will commit the cost and the cooldown automatically. If false, the commit will need to be called manually."))
-	bool AutoCommit;
+	bool bAutoCommit;
+
+	/**
+	 * @brief If true, the ability will not be allowed to be activated again if one is already active.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category= "Ability|General",
+		meta = (ToolTip = "If true, only one of this ability will be allowed to be activated at a time."))
+	bool bAllowOnlyOne;
 
 	/**
 	 * @brief These tags are used to identify this ability.
@@ -136,16 +114,10 @@ public:
 	TSubclassOf<UExEffect> AbilityCooldown;
 
 	/**
-	 * @brief The ID used whenever a wait for tag latent action is required.
-	 */
-	UPROPERTY()
-	int32 LatentID;
-
-	/**
 	 * @brief This function overrides the world and sets it to the owners world.
 	 * @return returns owners world.
 	 */
-	virtual UWorld* GetWorld() const override { return OwnerInfo.World; };
+	virtual UWorld* GetWorld() const override { return OwnerInfo.World.Get(); };
 
 	/**
 	 * @brief This function calls the blueprint override version of this function to check if the user has defined any conditions
@@ -219,11 +191,12 @@ public:
 	UExAbilityComponent* GetOwningAbilityComponent();
 
 	/**
-	 * @brief This function instances a new latent action for waiting until a tag event is sent to this ability. This will only stop code execution in blueprints.
-	 * @param Tag This is the tag to wait for.
-	 * @param LatentInfo This is the information sent to the latent actions.
+	 * Setup tasks
 	 */
-	UFUNCTION(BlueprintCallable, Category="Ability", meta = (Latent, LatentInfo = "LatentInfo"))
-	void WaitForTag(FGameplayTag Tag, struct FLatentActionInfo LatentInfo);
-	
+	UPROPERTY()
+	TArray<TObjectPtr<UGameplayTask>> ActiveTasks;
+	virtual void OnGameplayTaskInitialized(UGameplayTask& Task) override;
+	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
+	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
+	virtual UGameplayTasksComponent* GetGameplayTasksComponent(const UGameplayTask& Task) const override;
 };
